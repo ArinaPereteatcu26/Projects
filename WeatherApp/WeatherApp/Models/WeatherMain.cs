@@ -2,5 +2,5 @@
 
 class WeatherMain
 {
-    public float Temperature { get; set; }
+    public float Temp { get; set; }
 }

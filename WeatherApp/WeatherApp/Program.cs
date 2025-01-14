@@ -1,17 +1,16 @@
-﻿using System;
-using System.Net.Http;
-using System.Threading.Tasks;
-using WeatherApp.Models;
+﻿using WeatherApp.Models;
 using Newtonsoft.Json;
 
 class Program
 {
-    private static string apiKey = "d72804d438269939aa5049bcb7726617";
-    static string apiBaseUrl = "https://api.openweathermap.org/data/2.5/weather";
-    static string cityName = string.Empty;
+    private static string _apiKey = "d72804d438269939aa5049bcb7726617";
+    static string _apiBaseUrl = "https://api.openweathermap.org/data/2.5/weather";
+    static string _cityName = string.Empty;
 
-    static async Task Main(string[] args)
+
+    static async Task Main()
     {
+
         Console.Title = "Weather App";
         Console.ForegroundColor = ConsoleColor.DarkMagenta;
 
@@ -33,24 +32,34 @@ class Program
                 case "1":
                     Console.Clear();
                     Console.WriteLine("Enter City Name:");
-                    cityName = Console.ReadLine();
-                    Console.WriteLine($"City entered: {cityName}");
+                    _cityName = Console.ReadLine();
+                    Console.WriteLine($"City entered: {_cityName}");
                     Console.WriteLine("Press any key to return to menu...");
                     Console.ReadKey();
                     break;
+
                 case "2":
                     Console.Clear();
-                    if (string.IsNullOrWhiteSpace(cityName))
+                    if (string.IsNullOrWhiteSpace(_cityName))
                     {
-                        Console.WriteLine("Enter city name first");
+                        var weather = await FetchWeatherData(_cityName);
+
+                        if (weather != null)
+                        {
+                            Console.WriteLine($"Weather in {_cityName}: {weather.Weather[0].Description}");
+                        }
+                        else
+                        {
+                            Console.WriteLine("No weather data found");
+                        }
                     }
                     else
                     {
-                        Console.WriteLine("Fetching weather");
-                        var weather = await FetchWeatherData(cityName);
+                        Console.WriteLine("Fetching weather...");
+                        var weather = await FetchWeatherData(_cityName);
                         if (weather != null)
                         {
-                            Console.WriteLine($"Weather: {cityName}: {weather.Weather[0].Description}");
+                            Console.WriteLine($"Weather in {_cityName}: {weather.Weather[0].Description}");
                         }
                         else
                         {
@@ -64,17 +73,17 @@ class Program
 
                 case "3":
                     Console.Clear();
-                    if (string.IsNullOrWhiteSpace(cityName))
+                    if (string.IsNullOrWhiteSpace(_cityName))
                     {
                         Console.WriteLine("Enter city name first");
                     }
                     else
                     {
-                        Console.WriteLine("Fetching weather");
-                        var weather = await FetchWeatherData(cityName);
+                        Console.WriteLine("Fetching temperature");
+                        var weather = await FetchWeatherData(_cityName);
                         if (weather != null)
                         {
-                            Console.WriteLine($"Temperature: {cityName}: {weather.Main.Temperature} C");
+                            Console.WriteLine($"Temperature in {_cityName}: {weather.Main.Temp} C");
                         }
                         else
                         {
@@ -104,17 +113,22 @@ class Program
 //asynchronous method that returns a task and provides a weatherResponse object
     static async Task<WeatherResponse> FetchWeatherData(string city)
     {
-        using (HttpClient client = new HttpClient())  //sent HTTP requests
+        using (HttpClient client = new HttpClient()) //sent HTTP requests
         {
             try
             {
                 //query parameter for the city name and API key
-                string requestUrl = $"{apiBaseUrl}?q={city}&appid={apiKey}&units=metric";
+                string requestUrl = $"{_apiBaseUrl}?q={city}&appid={_apiKey}&units=metric";
                 HttpResponseMessage response = await client.GetAsync(requestUrl);
 
-                response.EnsureSuccessStatusCode();
-                string responseData = await response.Content.ReadAsStringAsync();
+                if (!response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine(
+                        $"Error: Unable to retrieve weather for {city}. Status code: {response.StatusCode}");
+                    return null;
+                }
 
+                string responseData = await response.Content.ReadAsStringAsync();
                 return JsonConvert.DeserializeObject<WeatherResponse>(responseData);
             }
             catch (Exception ex)
@@ -124,8 +138,18 @@ class Program
             }
         }
     }
-    
 }
+/*public static async Task<string> GetLocationFromIP()
+{
+    using (HttpClient client = new HttpClient())
+    {
+        string ipApiUrl = "http://ip-api.com/json";
+        var response = await client.GetStringAsync(ipApiUrl);
+        dynamic data = JsonConvert.DeserializeObject(response);
+        return $"{data.city}";
+    }*/
+        
+    
 
 
 
