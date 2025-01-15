@@ -1,16 +1,22 @@
-﻿using WeatherApp.Models;
+﻿using System;
+using System.IO;
+using System.Net.Http;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
+using WeatherApp.Models;
 
 class Program
 {
-    private static string _apiKey = "d72804d438269939aa5049bcb7726617";
+
+    private static string _apiKey;
     static string _apiBaseUrl = "https://api.openweathermap.org/data/2.5/weather";
     static string _cityName = string.Empty;
 
 
     static async Task Main()
     {
-
+        LoadConfiguration();
         Console.Title = "Weather App";
         Console.ForegroundColor = ConsoleColor.DarkMagenta;
 
@@ -136,6 +142,20 @@ class Program
                 Console.WriteLine(ex.Message);
                 return null;
             }
+        }
+
+    }
+    private static void LoadConfiguration()
+    {
+        var config = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true)
+            .Build();
+
+        _apiKey = config["WeatherApiKey"];
+        if (string.IsNullOrEmpty(_apiKey))
+        {
+            throw new Exception("API Key not found in configuration.");
         }
     }
 }
