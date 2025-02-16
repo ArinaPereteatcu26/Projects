@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Reflection.Metadata;
 
 namespace ExpenseTracker.Models
 {
@@ -8,6 +9,7 @@ namespace ExpenseTracker.Models
         [Key] public int CategoryId { get; set; }
 
         [Column(TypeName = "nvarchar(50)")]
+        [Required(ErrorMessage = "Title is required")]
         public string Title { get; set; }
 
         [Column(TypeName = "nvarchar(5)")] 
